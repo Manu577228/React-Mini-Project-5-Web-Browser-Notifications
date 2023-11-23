@@ -1,42 +1,77 @@
-import React from 'react';
 import {
   ChakraProvider,
-  Box,
-  Text,
-  Link,
-  VStack,
-  Code,
-  Grid,
   theme,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Button,
+  Container,
+  Box,
 } from '@chakra-ui/react';
-import { ColorModeSwitcher } from './ColorModeSwitcher';
-import { Logo } from './Logo';
+import { useState } from 'react';
+
+async function notifyUser(
+  notificationText = 'Thank you for enabling notifications!'
+) {
+  if (!'Notification in window') {
+    alert('Browser does not support notifications');
+  } else if (Notification.permission === 'granted') {
+    const notification = new Notification(notificationText);
+  } else if (Notification.permission !== 'denied') {
+    await Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        const notification = new Notification(notificationText);
+      }
+    });
+  }
+}
 
 function App() {
-  return (
+
+const [response, setResponse] = useState(false);
+
+const enableNotifsAndClose = async() => {
+ await notifyUser().then(() => {
+  setResponse(true);
+ })
+  setResponse(true);
+}
+
+const disableNotifsAndClose = () => {
+  setResponse(true);
+}
+
+  return (!(response) && !(Notification.permission === 'granted')) ? ( 
+  <ChakraProvider theme={theme}>
+      <Container>
+        <Alert status='success'>
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Notifications</AlertTitle>
+            <AlertDescription>
+              Would you like to enable notifications?
+            </AlertDescription>
+          </Box>
+          <Button colorScheme='teal' size='sm' onClick={enableNotifsAndClose}>
+            Sure!
+          </Button>
+          <Button colorScheme='gray' size='sm' onClick={disableNotifsAndClose}>
+            No thanks!
+          </Button>
+        </Alert>
+      </Container>
+  </ChakraProvider>
+  ) : (Notification.permission === 'granted') ? (
     <ChakraProvider theme={theme}>
-      <Box textAlign="center" fontSize="xl">
-        <Grid minH="100vh" p={3}>
-          <ColorModeSwitcher justifySelf="flex-end" />
-          <VStack spacing={8}>
-            <Logo h="40vmin" pointerEvents="none" />
-            <Text>
-              Edit <Code fontSize="xl">src/App.js</Code> and save to reload.
-            </Text>
-            <Link
-              color="teal.500"
-              href="https://chakra-ui.com"
-              fontSize="2xl"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn Chakra
-            </Link>
-          </VStack>
-        </Grid>
-      </Box>
-    </ChakraProvider>
-  );
+      <Button colorScheme='gray' size='sm' onClick={() => notifyUser("Thanks for watching this video!")}>
+        Click to show a thank you!
+      </Button>
+  </ChakraProvider>
+  ) :
+  <>
+  <h1>You have disabled notifications</h1>
+  </>
 }
 
 export default App;
